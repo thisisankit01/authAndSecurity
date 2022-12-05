@@ -204,6 +204,8 @@ else{
   })
 });
 
+console.log("hello");
+
 
 ///////////////////////////////////localhost//////////////////////////////////////////
 app.listen(PORT || 3000, () => console.log(`listening on 3000`));
