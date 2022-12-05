@@ -12,13 +12,14 @@ import  findOrCreate from 'mongoose-findorcreate';
 
 dotenv.config();
 
-////////////////////connected to PORT///////////////////////////
+////////////////////express///////////////////////////
 const PORT = process.env.PORT;
 const app = express();
 
-app.use(express.static("public"));
-app.set('view engine','ejs');
-app.use(bodyParser.urlencoded({extended:true}));
+                                         //app.use() method to add middleware functions to the app
+app.use(express.static("public"));//express.static() middleware function serves static files from the public directory, such as images, CSS, and JavaScript files.
+app.set('view engine','ejs'); //The app.set() method is used to set the 'view engine' property to 'ejs', which specifies that the app will use the ejs module to render HTML templates.
+app.use(bodyParser.urlencoded({extended:true})); //The app.use() method is also used to add the body-parser middleware function, which will parse incoming request bodies in the urlencoded format.
 
 app.use(session({ //The app.use() method is used to add middleware functions to an Express application.
 
@@ -48,22 +49,22 @@ const userSchema = new mongoose.Schema({
 });
 
 
-userSchema.plugin(passportLocalMongoose); //setted userSchema to use passport-local-mongoose as a plugin
+userSchema.plugin(passportLocalMongoose); //The schema also uses the passport-local-mongoose plugin to add methods for handling user authentication with username and password credentials. The plugin provides methods such as register(), authenticate(), and serializeUser(), which can be used to register new users, authenticate existing users, and serialize user data for storing in a session.
 userSchema.plugin(findOrCreate); //
 
 const User = new mongoose.model("User",userSchema);
 
 
 /////////////////////////////////passport//////////////////////////////////////////
-passport.use(User.createStrategy());
+
+passport.use(User.createStrategy()); // This line uses the passport.use() method to add a new authentication strategy to Passport. In this case, the strategy is created using the createStrategy() method provided by the passport-local-mongoose plugin. This strategy allows the app to authenticate users with username and password credentials using the User model.
 
 
-passport.serializeUser((user, done) => {
-  // Convert the user object to a unique identifier
+passport.serializeUser((user, done) => {//serializeUser() method is called when a user is authenticated, and it is used to convert the user object to a unique identifier. This identifier is then stored in the session object, which allows the app to keep track of the authenticated user across multiple requests.
   done(null, user.id);
 });
 
-passport.deserializeUser(function(id, done) {
+passport.deserializeUser(function(id, done) { //deserializeUser() method is called when the app needs to access the user data in the session, and it is used to convert the identifier back into the user object.
   User.findById(id, function(err, user) {
     done(err, user);
   });
@@ -92,7 +93,7 @@ app.get('/',function(req,res){
   res.render("home");
 })
 
-app.get("/auth/google",
+app.get("/auth/google", //This route handler is for the GET method and the /auth/google URL. It uses the passport.authenticate() method to initiate the Google OAuth 2.0 authentication process. This method will redirect the user to the Google login page, where they can grant the app access to their Google profile.
 passport.authenticate('google',{scope:["profile"]})
 );
 
@@ -111,7 +112,7 @@ app.get('/register',function(req,res){
   res.render("register");
 })
 
-app.get("/secrets", function(req, res){
+app.get("/secrets", function(req, res){ //This route handler is for the GET method and the /secrets URL. It uses the User.find() method to query the database for users who have a non-null value for the secret field. It then renders the secrets template, passing the array of users as a parameter.
   User.find({"secret": {$ne: null}}, function(err, foundUsers){
     if (err){
       console.log(err);
@@ -141,7 +142,7 @@ app.get("/submit",function(req,res){
   }
 })
 
-app.post('/submit',function(req,res){
+app.post('/submit',function(req,res){ //This route handler is for the POST method and the /submit URL. It is called when the user submits the form on the /submit page. The handler retrieves the secret from the request body using the req.body property, and then uses the User.findById() method to find the user in the database. It updates the user's secret and saves the changes to the database, and then redirects the user to the /secrets page.
   const submittedSecret = req.body.secret;
   console.log(req.user.id);
 
@@ -173,7 +174,7 @@ app.get("/logout", function(req, res) {
 //////////////////////////////////POST requests//////////////////////////////////////
 
 
-app.post('/register',function(req,res){
+app.post('/register',function(req,res){ //This route handler is for the POST method and the /register URL. It is called when the user submits the form on the /register page. The handler uses the User.register() method provided by the passport-local-mongoose plugin to register a new user with the given username and password. It then uses the passport.authenticate() method to log the user in and redirect them to the /secrets page.
 User.register({username:req.body.username}, req.body.password, function(err,user){
   if(err){
     console.log(err);
@@ -186,7 +187,7 @@ User.register({username:req.body.username}, req.body.password, function(err,user
 })
 })
 
-app.post('/login',function(req,res){
+app.post('/login',function(req,res){// This route handler is for the POST method and the /login URL. It is called when the user submits the form on the /login page. The handler creates a new user object with the given username and password, and then uses the req.login() method provided by Passport to log the user in. It then redirects the user to the /secrets page.
   const user = new User({
     username : req.body.username,
     password : req.body.password
