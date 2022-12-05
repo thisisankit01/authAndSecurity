@@ -13,7 +13,7 @@ import  findOrCreate from 'mongoose-findorcreate';
 dotenv.config();
 
 ////////////////////connected to PORT///////////////////////////
-const PORT = 3000;
+const PORT = process.env.PORT;
 const app = express();
 
 app.use(express.static("public"));
@@ -206,6 +206,4 @@ else{
 
 
 ///////////////////////////////////localhost//////////////////////////////////////////
-app.listen(PORT, ()=>{
-  console.log(`listening to ${PORT}`);
-});
+app.listen(PORT || 3000, () => console.log(`listening on 3000`));
